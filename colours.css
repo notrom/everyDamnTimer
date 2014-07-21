@@ -1,0 +1,41 @@
+/* #354458 - dark blueish */
+/* #3a9ad9 - light blueish */
+/* #29aba4 - greenish */
+/* #e9e0d6 - light tan */ 
+/* #eb7260 - reddish */
+
+
+body {
+	background-color: #29aba4;
+}
+
+div.edtHeader {
+	background-color: #e9e0d6;
+	border-bottom: 8px solid #eb7260;
+	border-top: 8px solid #eb7260;
+}
+
+#thisPageUrl {
+	background-color: #354458;
+}
+
+#thisPageUrl a:visited {color: #e9e0d6;}
+#thisPageUrl a:link {color: #e9e0d6;}
+
+div.newTimerInputs {
+	background-color: #e9e0d6;
+}
+
+div.newTimerInputTitle {
+	background-color: #354458;
+	color: #e9e0d6;
+}
+
+div.timerName {
+	background-color: #eb7260;
+	color: #e9e0d6;
+}
+
+div.timerDetail {
+	background-color: #e9e0d6;
+}
