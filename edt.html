@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+
+<html>	
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+	<!--[if lt IE 9]>
+	<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/aight/1.2.2/aight.min.js"></script>
+	<![endif]-->
+	<title>EDT</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<link rel="stylesheet" type="text/css" href="colours.css">
+</head>
+<body>
+	<div class="edtHeader">
+		Every Damn Timer
+		<div class="edtHeaderSub">All I Need Is a Simple Timer I Can Find Again</div>
+	</div>
+	<div id="thisPageUrl"></div>
+	<div id="timerContainer"></div>
+	<div class="newTimerInputs">
+		<div class="newTimerInputTitle">
+			Add New Relative Timer
+			<input id="addNewRelTimerButton" type="button" onclick="createNewRelTimer()" value="+"></input>
+		</div>
+		<div class="newTimerInputValues">
+			<!-- input elements to add a new timer -->
+			Timer Name: <input id="addNewRelTimerName" type="text" size="16"></input><br>
+			Offset: Y <input id="addNewRelTimerRefYear" type="text" size="2" value="0"></input>
+			D <input id="addNewRelTimerRefDay" type="text" size="2" value="0">0</input>
+			Time <input id="addNewRelTimerRefHour" type="text" size="2" value="0"></input>:<input id="addNewRelTimerRefMin" type="text" size="2" value="0"></input>:<input id="addNewRelTimerRefSec" type="text" size="2" width="16px" value="0"></input>
+		</div>
+	</div>
+	<div class="newTimerInputs">
+		<div class="newTimerInputTitle">
+			Add New Absolute Timer
+			<input id="addNewAbsTimerButton" type="button" onclick="createNewAbsTimer()" value="+"></input>
+		</div>
+		<div class="newTimerInputValues">
+			<!-- input elements to add a new timer -->
+			Timer Name: <input id="addNewTimerName" type="text" size="16"></input><br>
+			<!--Update Interval (sec): <input id="addNewTimerUpdateInterval" type="text" size="2"></input>-->
+			<!--Target Datetime: <input id="addNewTimerRefDatetime" type="text" size="20"></input><br>-->
+			Target: Y <input id="addNewTimerRefYear" type="text" size="2"></input>
+			M <input id="addNewTimerRefMonth" type="text" size="1"></input>
+			D <input id="addNewTimerRefDay" type="text" size="1"></input>
+			Time <input id="addNewTimerRefHour" type="text" size="1"></input>:<input id="addNewTimerRefMin" type="text" size="1"></input>:<input id="addNewTimerRefSec" type="text" size="1" width="16px"></input>
+		</div>
+	</div>
+	<div class="newTimerInputs">
+		<div class="newTimerInputTitle">
+			Add New Stopwatch
+			<input id="addNewStopwatchButton" type="button" onclick="createNewStopWatch()" value="+"></input>
+		</div>
+		<div class="newTimerInputValues">
+			Stopwatch Name: <input id="addNewSWName" type="text" size="16"></input><br>
+			<!--Update Interval (sec): <input id="addNewSWUpdateInterval" type="text" size="2"></input>-->
+		</div>
+	</div>
+	<script>
+		
+		var msPerSecond = 1000;
+		var msPerMinute = msPerSecond * 60;
+		var msPerHour = msPerMinute * 60;
+		var msPerDay = msPerHour * 24;
+		var msPerYear = msPerDay * 365;
+		
+		function queryString(paramString, key) {
+			//var re=new RegExp('(?:\\?|&)'+key+'=(.*?)(?=&|$)','gi');
+			var re=new RegExp('(?:\\?|&)'+key+'=(.*?)(?=&|$)','gi');
+			var r=[], m;
+			//var decodeStr = decodeURIComponent(document.location.search);
+			while ((m=re.exec(paramString)) != null) r.push(m[1]);
+			return r;
+		}
+		
+		// all the timers in this page
+		var timersList = [];
+	
+		// function to parse the URL parameters
+		function urlParamParse(paramStr) {
+			var urlTimersList = [];
+			timerStrings = paramStr.split("|");
+			for (var i  = 0; i < timerStrings.length; i++) {
+				var timerSpec = {};
+				var qStr = timerStrings[i].replace(/:/gi, "=");
+				qStr = "?" + qStr.replace(/,/gi, "&");
+				timerSpec.name = queryString(decodeURIComponent(qStr), "n")[0];
+				timerSpec.refDatetime = new Date(+(queryString(decodeURIComponent(qStr), "d")[0]));
+				timerSpec.updateInterval = queryString(decodeURIComponent(qStr), "i")[0];
+				timerSpec.type = queryString(decodeURIComponent(qStr), "t")[0];
+				urlTimersList.push(timerSpec);
+			}
+			return urlTimersList;
+		}
+		
+		// build the timers encoded in the URL
+		function builTimersFromUrlParams() {
+			var urlTimersList = [];
+			var timersListStr = queryString(decodeURIComponent(document.location.search), "timers");
+			urlTimersList = urlParamParse(timersListStr[0]);
+			for (var i = 0; i < urlTimersList.length; i ++) {
+				addTimerDef(urlTimersList[i]);
+			}
+		}
+		
+		// build a string representing the timers configure in this page
+		function buildUrlParameterString() {
+			var paramString = "";
+			for (var i = 0; i < timersList.length; i++) {
+				var nameStr = "n:" + timersList[i].name;
+				var refDateStr = "d:" + timersList[i].refDatetime.getTime();
+				var intrvlStr = "i:" + timersList[i].updateInterval;
+				var typeStr = "t:" + timersList[i].type;
+				var runState = "r:" + (timersList[i].updateTimer !== false ? 1 : 0);
+				paramString += nameStr + "," + refDateStr + "," + intrvlStr + "," + typeStr + "," + runState;
+				// add seperator except for last one
+				if (i <  timersList.length - 1) { 
+					paramString += "|"; 
+				} else {
+					// on the last one add the param name
+					paramString = "timers=" + paramString;
+				}
+			}
+			return paramString;
+		}
+		
+		// update the link to these timers
+		function updateUrlParameters () {
+			var paramStr = buildUrlParameterString();
+			var dispUrlEle = document.getElementById("thisPageUrl");
+			dispUrlEle.innerHTML = "<a href='" + window.location.pathname + "?" + encodeURIComponent(paramStr) + "'>Link to these timers</a>" + "<br>";
+			setConfirmUnload(true);
+		}
+		
+		// build a new relative timer based on the relative input fields
+		function createNewRelTimer() {
+			var endDts = new Date();
+			// add the extra intervals
+			endDts = endDts.getTime() + +document.getElementById("addNewRelTimerRefYear").value * msPerYear;
+			endDts = endDts + +document.getElementById("addNewRelTimerRefDay").value * msPerDay;
+			endDts = endDts + +document.getElementById("addNewRelTimerRefHour").value * msPerHour;
+			endDts = endDts + +document.getElementById("addNewRelTimerRefMin").value * msPerMinute;
+			endDts = endDts + +document.getElementById("addNewRelTimerRefSec").value * msPerSecond;
+			
+			endDts = new Date(endDts);
+			
+			var tmrNameEle = document.getElementById("addNewRelTimerName");
+			var tmrUpdateInterval = "";
+			// default values ...
+			if (tmrNameEle.value === "") { tmrNameEle.value = "Relative Timer";}
+			addTimerDef({name: tmrNameEle.value, updateInterval: 1000, refDatetime: endDts, type: "T"});
+			updateUrlParameters();
+		}
+		
+		// create a new timer from the data in the input fields
+		function createNewAbsTimer() {
+			var endDts = new Date();
+			endDts = new Date(endDts.getTime() + msPerDay); // default to the start of the next day
+			// should check inputs and have defaults
+			var inYear = document.getElementById("addNewTimerRefYear").value;
+			inYear = (inYear === "" ? "" + endDts.getFullYear() : inYear);
+			inYear = leftPadZeros("2000", inYear);
+			var inMonth = document.getElementById("addNewTimerRefMonth").value;
+			inMonth = (inMonth === "" ? "" + (endDts.getMonth() + 1) : inMonth);
+			inMonth = leftPadZeros("00", inMonth);
+			var inDay = document.getElementById("addNewTimerRefDay").value;
+			inDay = (inDay === "" ? "" + (endDts.getDate()) : inDay);
+			inDay = leftPadZeros("00", inDay);
+			var inHour = document.getElementById("addNewTimerRefHour").value;
+			//inHour = (inHour === "" ? "" + (endDts.getHours()) : inHour);
+			inHour = leftPadZeros("00", inHour);
+			var inMin = document.getElementById("addNewTimerRefMin").value;
+			//inMin = (inMin === "" ? "" + (endDts.getHours()) : inMin);
+			inMin = leftPadZeros("00", inMin);
+			var inSec = document.getElementById("addNewTimerRefSec").value;
+			//inSec = (inSec === "" ? "" + (endDts.inSec()) : inHour);
+			inSec = leftPadZeros("00", inSec);
+			
+			var dtsStr = inYear+"-"+inMonth+"-"+inDay+" "+inHour+":"+inMin+":"+inSec;
+			
+			var tmrNameEle = document.getElementById("addNewTimerName");
+			var tmrUpdateInterval = "";
+			// default values ...
+			if (tmrNameEle.value === "") { tmrNameEle.value = "Absolute Timer";}
+			addTimerDef({name: tmrNameEle.value, updateInterval: 1000, refDatetime: datesStringtoDate(dtsStr), type: "T"});
+			updateUrlParameters();
+		}
+		
+		// create a new stopwatch
+		function createNewStopWatch() {
+			// should check inputs and have defaults
+			var tmrNameEle = document.getElementById("addNewSWName");
+			//var tmrUpdateInterval = document.getElementById("addNewSWUpdateInterval");
+			var tmrUpdateInterval = "";
+			// default values ...
+			if (tmrNameEle.value === "") { tmrNameEle.value = "Stopwatch";}
+			addTimerDef({name: tmrNameEle.value, updateInterval: 1000, refDatetime: new Date(), type: "SW"});
+			updateUrlParameters();
+		}
+		
+		// remove the provided timer from both the screen and the global list
+		function removeTimer(timerDef) {
+			var idx = -1;
+			// find the timer we want to remove
+			for (var i = 0; i < timersList.length; i++) {
+				if (timerDef.timerId === timersList[i].timerId) {
+					idx = i;
+				}
+			}
+			// remove the div
+			timerDef.timerDiv.remove();
+			// remove the list item for that timer
+			timersList.splice(idx, 1);
+			updateUrlParameters();
+		}
+		
+		// add the Stopwatch controls to the provided div
+		function addStopwatchControls(timerDef, timerDiv) {
+			// setup the reset button
+			var resetSpan = document.createElement("span");
+			resetSpan.setAttribute('class', 'swReset');
+			var resetButton = document.createElement("input");
+			resetButton.type = "button";
+			resetButton.value = String.fromCharCode(8617);
+			resetButton.onclick = function () { timerDef.resetSW(); };
+			resetSpan.appendChild(resetButton);
+			timerDiv.appendChild(resetSpan);
+			
+			// setup the start button
+			var startSpan = document.createElement("span");
+			startSpan.setAttribute('class', 'swStart');
+			var startButton = document.createElement("input");
+			startButton.type = "button";
+			startButton.value = String.fromCharCode(9658);
+			startButton.onclick = function () { timerDef.startSW(); };
+			startSpan.appendChild(startButton);
+			timerDiv.appendChild(startSpan);
+			
+			// setup the pause button
+			var pauseSpan = document.createElement("span");
+			pauseSpan.setAttribute('class', 'swPause');
+			var pauseButton = document.createElement("input");
+			pauseButton.type = "button";
+			pauseButton.value = String.fromCharCode(9616,9616);
+			pauseButton.onclick = function () { timerDef.pauseSW(); };
+			pauseSpan.appendChild(pauseButton);
+			timerDiv.appendChild(pauseSpan);
+		}
+		
+		// add a timer div to the container and the global list
+		function addTimerDef(timerDef) {
+			var timerContainer = document.getElementById("timerContainer");
+			var timerDiv = document.createElement("div");
+			timerDiv.setAttribute('class', 'timer');
+			
+			// setup the name div
+			var nameDiv = document.createElement("div");
+			nameDiv.setAttribute('class', 'timerName');
+			var nameText = timerDef.name;
+			if (timerDef.type === "T") { nameText += " - " + dateToDateString(timerDef.refDatetime)};
+			nameDiv.appendChild(document.createTextNode(nameText));
+			timerDiv.appendChild(nameDiv);
+			
+			// the timer detail div
+			var timerDetailDiv = document.createElement("div");
+			timerDetailDiv.setAttribute('class', 'timerDetail');
+			timerDiv.appendChild(timerDetailDiv);
+			
+			// setup the remove button
+			var xSpan = document.createElement("span");
+			xSpan.setAttribute('class', 'timerRemove');
+			var xButton = document.createElement("input");
+			xButton.type = "button";
+			xButton.value = String.fromCharCode(215);
+			xButton.onclick = function () { removeTimer(timerDef); };
+			xSpan.appendChild(xButton);
+			timerDetailDiv.appendChild(xSpan);
+			
+			if (timerDef.type === "SW") { addStopwatchControls(timerDef, timerDetailDiv); }
+			
+			// setup the time to go
+			var toGoSpan = document.createElement("span");
+			toGoSpan.setAttribute('class', 'timerToGo');
+			toGoSpan.appendChild(document.createTextNode(""));
+			timerDetailDiv.appendChild(toGoSpan);
+			
+			timerDiv.appendChild(timerDetailDiv);
+			
+			// add timer div to the main container
+			timerContainer.appendChild(timerDiv);
+			
+			// create an id that we canuse later to track this timer down
+			timerDef.timerId = "_id_" + Date.now() + "_" + timerDef.name;
+			// store the timer div so we can remove it later
+			timerDef.timerDiv = timerDiv;
+			// store the toGo span for updating
+			timerDef.toGoSpan = toGoSpan;
+			timerDef.updateTimer = false;
+			// setup the runtimer
+			timerDef.runTimer = function () {
+				// only start the timer if it's not already running
+				if (timerDef.updateTimer === false) { 
+					timerDef.updateTimer = window.setInterval(function() { updateToGo(timerDef); }, timerDef.updateInterval);
+				}
+			};
+			// setup the stoptimer
+			timerDef.stopTimer = function () {
+				window.clearInterval(timerDef.updateTimer);
+				timerDef.updateTimer = false;
+			};
+			// timer specific sfuff
+			if (timerDef.type === "T") { 
+				timerDef.runTimer(); 
+			} else if (timerDef.type === "SW") {
+				timerDef.ElapsedMsec = 0;
+				// starting a SW resets the date to now and uses the already elapsed time
+				timerDef.startSW = function () {
+					// only start if not already running
+					if (timerDef.updateTimer === false) {
+						timerDef.refDatetime = new Date(new Date() - timerDef.ElapsedMsec);
+						timerDef.runTimer();
+						updateUrlParameters();
+					}
+				};
+				// set the time to now and reset elapsed
+				timerDef.resetSW = function () {
+					timerDef.refDatetime = new Date();
+					timerDef.ElapsedMsec = 0;
+					updateToGo(timerDef);
+					updateUrlParameters();
+				};
+				timerDef.pauseSW = function () {
+					timerDef.ElapsedMsec = new Date() - timerDef.refDatetime;
+					timerDef.stopTimer();
+					updateUrlParameters();
+				}
+				timerDef.runTimer(); 
+			}
+			
+			// add it to the global list of timers
+			timersList.push(timerDef);
+		}
+		
+		// update the string field that displays the time for this field
+		function updateToGo(timerDef) {
+			var diff = timerDef.refDatetime - new Date();
+			timerDef.toGoSpan.innerHTML = getNiceTime(timerDef.refDatetime, new Date(), 5, false);
+			// if it's a timer and the time has alrrready passed then add a neagtive sign
+			if (timerDef.type === "T" && diff < 0) {
+				timerDef.toGoSpan.innerHTML = "-" + timerDef.toGoSpan.innerHTML
+			}
+		}
+		
+		/**
+		* Function to print date diffs.
+		* Based on http://stackoverflow.com/a/18588026/182946
+		* 
+		* @param {Date} fromDate: The valid start date
+		* @param {Date} toDate: The end date. Can be null (if so the function uses "now").
+		* @param {Number} levels: The number of details you want to get out (1="in 2 Months",2="in 2 Months, 20 Days",...)
+		* @param {Boolean} prefix: adds "in" or "ago" to the return string
+		* @return {String} Diffrence between the two dates.
+		*/
+		function getNiceTime(fromDate, toDate, levels, prefix){
+			var lang = {
+					"date.past": "{0} ago",
+					"date.future": "in {0}",
+					"date.now": "now",
+					"date.year": "{0}y ",
+					"date.years": "{0}y ",
+					"date.years.prefixed": "{0}y ",
+					"date.month": "{0}m ",
+					"date.months": "{0}m ",
+					"date.months.prefixed": "{0}m ",
+					"date.day": "{0}d ",
+					"date.days": "{0}d ",
+					"date.days.prefixed": "{0}d ",
+					"date.hour": "{0}:",
+					"date.hours": "{0}:",
+					"date.hours.prefixed": "{0}:",
+					"date.minute": "{0}:",
+					"date.minutes": "{0}:",
+					"date.minutes.prefixed": "{0}:",
+					"date.second": "{0}",
+					"date.seconds": "{0}",
+					"date.seconds.prefixed": "{0}",
+				},
+				langFn = function(id,params){
+					var returnValue = lang[id] || "";
+					if(params){
+						for(var i=0;i<params.length;i++){
+							returnValue = returnValue.replace("{"+i+"}",params[i]);
+						}
+					}
+					return returnValue;
+				},
+				toDate = toDate ? toDate : new Date(),
+				diff = fromDate - toDate,
+				past = diff < 0 ? true : false,
+				diff = diff < 0 ? diff * -1 : diff,
+				date = new Date(new Date(1970,0,1,0).getTime()+diff),
+				returnString = '',
+				count = 0,
+				years = (date.getFullYear() - 1970);
+			if(years > 0){
+				var langSingle = "date.year" + (prefix ? "" : ""),
+					langMultiple = "date.years" + (prefix ? ".prefixed" : "");
+				returnString += (count > 0 ?  ' ' : '') + (years > 1 ? langFn(langMultiple,[years]) : langFn(langSingle,[years]));
+				count ++;
+			}
+			var months = date.getMonth();
+			if(count < levels && months > 0){
+				var langSingle = "date.month" + (prefix ? "" : ""),
+					langMultiple = "date.months" + (prefix ? ".prefixed" : "");
+				returnString += (count > 0 ?  ' ' : '') + (months > 1 ? langFn(langMultiple,[months]) : langFn(langSingle,[months]));
+				count ++;
+			} else {
+				//if(count > 0)
+					//count = 99;
+			}
+			var days = date.getDate() - 1;
+			if(count < levels && days > 0){
+				var langSingle = "date.day" + (prefix ? "" : ""),
+					langMultiple = "date.days" + (prefix ? ".prefixed" : "");
+				returnString += (count > 0 ?  ' ' : '') + (days > 1 ? langFn(langMultiple,[days]) : langFn(langSingle,[days]));
+				count ++;
+			} else {
+				//if(count > 0)
+				//	count = 99;
+			}
+			var hours = date.getHours();
+			if(count < levels){
+				var langSingle = "date.hour" + (prefix ? "" : ""),
+					langMultiple = "date.hours" + (prefix ? ".prefixed" : "");
+				returnString += (count > 0 ?  '' : '') + (hours > 1 ? leftPadZeros("00:", langFn(langMultiple,[hours])) : leftPadZeros("00:", langFn(langSingle,[hours])));
+				count ++;
+			} else {
+				if(count > 0)
+					count = 99;
+			}
+			var minutes = date.getMinutes();
+			if(count < levels){
+				var langSingle = "date.minute" + (prefix ? "" : ""),
+					langMultiple = "date.minutes" + (prefix ? ".prefixed" : "");
+				returnString += (count > 0 ?  '' : '') + (minutes > 1 ? leftPadZeros("00:", langFn(langMultiple,[minutes])) : leftPadZeros("00:", langFn(langSingle,[minutes])));
+				count ++;
+			} else {
+				if(count > 0)
+					count = 99;
+			}
+			var seconds = date.getSeconds();
+			if(count < levels){
+				var langSingle = "date.second" + (prefix ? "" : ""),
+					langMultiple = "date.seconds" + (prefix ? ".prefixed" : "");
+				returnString += (count > 0 ?  '' : '') + (seconds > 1 ? leftPadZeros("00", langFn(langMultiple,[seconds])) : leftPadZeros("00", langFn(langSingle,[seconds])));
+				count ++;
+			} else {
+				if(count > 0)
+					count = 99;
+			}
+			if(prefix){
+				if(returnString == ""){
+					returnString = langFn("date.now");
+				} else if(past)
+					returnString = langFn("date.past",[returnString]);
+				else
+					returnString = langFn("date.future",[returnString]);
+			}
+			return returnString;
+		}
+		
+		// Pad the prodived string with the provided padding
+		function leftPadZeros (pad, n) {
+			var nStr = "" + n;
+			return pad.substring(0, pad.length - nStr.length) + nStr;
+		}
+		
+		// set flag to force alert on close
+		function setConfirmUnload(on) {
+			window.onbeforeunload = (on) ? unloadMessage : null;
+		}
+		// alert 
+		function unloadMessage() {
+			return "The timers on this page have changed, do you have the new URL? If not you may lose the changes.";
+		}
+		
+		// not pretty but pure js and no dependencies ...
+		// format expected YYYY-MM-DD hh:MM:ss
+		function datesStringtoDate(dateString) {
+			var reggie = /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/;
+			var dateArray = reggie.exec(dateString); 
+			var dateObject = new Date(
+				(+dateArray[1]),
+				(+dateArray[2])-1, // Careful, month starts at 0!
+				(+dateArray[3]),
+				(+dateArray[4]),
+				(+dateArray[5]),
+				(+dateArray[6])
+			);
+			return dateObject;
+		}
+		// format required YYYY-MM-DD hh:MM:ss
+		function dateToDateString(dateObj) {
+			var dateString = "";
+			dateString += dateObj.getFullYear();
+			dateString += "-";
+			dateString += leftPadZeros("00", dateObj.getMonth() + 1);
+			dateString += "-";
+			dateString += leftPadZeros("00", dateObj.getDate());
+			dateString += " ";
+			dateString += leftPadZeros("00", dateObj.getHours());
+			dateString += ":";
+			dateString += leftPadZeros("00", dateObj.getMinutes());
+			dateString += ":";
+			dateString += leftPadZeros("00", dateObj.getSeconds());
+			return dateString;
+		}
+		 
+		builTimersFromUrlParams();
+		updateUrlParameters();
+		setConfirmUnload(false);
+	</script>
+
+</body>
+</html>

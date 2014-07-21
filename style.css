@@ -1,0 +1,162 @@
+
+body {
+	background-color: #2B2B2B;
+}
+
+#timerContainer {
+    width: 400px;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+#thisPageUrl {
+	border-radius: 10px;
+	background-color: #E9E581;
+	font-family: arial, helvetica;
+	font-weight: 700;
+	width: 400px;
+	color: #000000;
+	text-align: center;
+	padding: 0px;
+    margin: auto;
+	margin-bottom: 5px;
+}
+
+div.edtHeader {
+	background-color: #F6F6F6;
+	text-transform: uppercase;
+	color: #000000;
+	font-size: 2em;
+	font-weight: 700;
+	font-family: arial, helvetica;
+	text-align: center;
+	padding: 10px;
+	border-bottom: 8px solid #de1b1b;
+	border-top: 8px solid #de1b1b;
+	margin: 0 0 8px;
+}
+
+div.edtHeaderSub {
+	text-transform: lowercase;
+	font-size: .4em;
+	font-weight: 100;
+}
+
+
+div.newTimerInputs {
+	border-radius: 10px;
+	border-radius: 10px;
+	background-color: #F6F6F6;
+	width: 400px;
+	margin: auto;
+}
+
+/* date inputs */
+div.newTimerInputs #addNewTimerRefYear {
+	width: 32px;
+}
+div.newTimerInputs #addNewTimerRefMonth {
+	width: 16px;
+}
+div.newTimerInputs #addNewTimerRefDay {
+	width: 16px;
+}
+div.newTimerInputs #addNewTimerRefHour {
+	width: 16px;
+}
+div.newTimerInputs #addNewTimerRefMin {
+	width: 16px;
+}
+div.newTimerInputs #addNewTimerRefSec {
+	width: 16px;
+}
+
+/* date inputs */
+div.newTimerInputs #addNewRelTimerRefYear {
+	width: 32px;
+}
+div.newTimerInputs #addNewRelTimerRefMonth {
+	width: 16px;
+}
+div.newTimerInputs #addNewRelTimerRefDay {
+	width: 16px;
+}
+div.newTimerInputs #addNewRelTimerRefHour {
+	width: 16px;
+}
+div.newTimerInputs #addNewRelTimerRefMin {
+	width: 16px;
+}
+div.newTimerInputs #addNewRelTimerRefSec {
+	width: 16px;
+}
+
+div.newTimerInputTitle {
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 0px;
+	border-bottom-left-radius: 0px;
+	background-color: #E9E581;
+	font-family: arial, helvetica;
+	font-weight: 700;
+	text-transform: uppercase;
+	width: 400px;
+	color: #000000;
+	text-align: center;
+	padding: 0px;
+    margin: auto;
+	margin-bottom: 5px;
+}
+
+div.newTimerInputValues {
+	font-family: arial, helvetica;
+	font-weight: 700;
+	width: 400px;
+	color: #000000;
+	text-align: center;
+	padding: 0px;
+    margin: auto;
+	margin-bottom: 5px;
+}
+
+div.timer {
+	/*background-color: #F6F6F6;*/
+	/*border-radius: 10px;*/
+	/*border-color: #333333;*/
+	/*border: 1px solid;*/
+	margin-bottom: 5px;
+}
+
+div.timerName {
+	background-color: #de1b1b;
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 0px;
+	border-bottom-left-radius: 0px;
+	font-family: arial, helvetica;
+	text-transform: uppercase;
+	font-weight: 700;
+	color: #ffffff;
+	text-align: center;
+}
+
+div.timerDetail {
+	background-color: #F6F6F6;
+	padding: 5px;
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
+	border-bottom-right-radius: 10px;
+	border-bottom-left-radius: 10px;
+}
+
+span.timerToGo {
+	font-family: Consolas, monaco, monospace;
+	font-weight: 700;
+	font-size: 1.3em;
+	float: right;
+	margin-right: 20px;
+	color: #000000;
+}
