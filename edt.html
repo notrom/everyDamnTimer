@@ -58,6 +58,10 @@
 		</div>
 	</div>
 	
+	<script src="./lib/base64.js"></script>
+	<script src="./lib/underscore-min.js"></script>
+	<script src="./lib/github.js"></script>
+	
 	<script>
 		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 			(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -69,6 +73,10 @@
 	</script>
 	
 	<script>
+		// all the timers in this page
+		var timersList = [];
+		// the timers id if provided in the url
+		var timersId = "";
 		
 		var msPerSecond = 1000;
 		var msPerMinute = msPerSecond * 60;
@@ -84,9 +92,6 @@
 			while ((m=re.exec(paramString)) != null) r.push(m[1]);
 			return r;
 		}
-		
-		// all the timers in this page
-		var timersList = [];
 	
 		// function to parse the URL parameters
 		function urlParamParse(paramStr) {
@@ -108,10 +113,29 @@
 		// build the timers encoded in the URL
 		function builTimersFromUrlParams() {
 			var urlTimersList = [];
-			var timersListStr = queryString(decodeURIComponent(document.location.search), "timers");
-			urlTimersList = urlParamParse(timersListStr[0]);
-			for (var i = 0; i < urlTimersList.length; i ++) {
-				addTimerDef(urlTimersList[i]);
+			// if a pId is provided try that
+			var urlTimersId = queryString(decodeURIComponent(document.location.search), "pId");
+			
+			if (urlTimersId.length !== 0) {
+				timersId = urlTimersId[0];
+				getPersistedTimers(urlTimersId[0], function (timersListStr) {
+							if (timersListStr) {
+								timersListStr = queryString("?" + timersListStr, "timers")[0];
+								urlTimersList = urlParamParse(timersListStr);
+								for (var i = 0; i < urlTimersList.length; i ++) {
+									addTimerDef(urlTimersList[i]);
+								}
+							}
+						});
+			} else {
+				// otherwise get the timers as URL encoded params
+				var timersListStr = queryString(decodeURIComponent(document.location.search), "timers");
+				if (timersListStr.length !== 0) {
+					urlTimersList = urlParamParse(timersListStr[0]);
+					for (var i = 0; i < urlTimersList.length; i ++) {
+						addTimerDef(urlTimersList[i]);
+					}
+				}
 			}
 		}
 		
@@ -136,11 +160,71 @@
 			return paramString;
 		}
 		
+		var guid = (function() {
+			function s4() {
+				return Math.floor((1 + Math.random()) * 0x10000)
+				.toString(16)
+				.substring(1);
+			}
+			return function() {
+				return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+					s4() + '-' + s4() + s4() + s4();
+			};
+		})();
+		
+		function newPersistTimers() {
+			// passing 0 will create a new entry
+			persistTimers(0);
+		}
+		
+		function updPersistTimers() {
+			// use the existing timer ID
+			persistTimers(timersId);
+		}
+		
+		// use github to store 
+		// uses https://github.com/michael/github
+		function persistTimers(pId) {
+			var paramStr = buildUrlParameterString();
+			var guidish = 0;
+			var commentPrefix = "";
+			if (pId === 0) {
+				guidish = guid();
+				commentPrefix = "Added id ";
+			} else {
+				guidish = pId;
+				commentPrefix = "Updated id ";
+			}
+			timersId = guidish;
+			// here you go ...
+			var github = new Github({});
+			var repo = github.getRepo("notrom", "everyDamnTimer");
+			repo.write('gh-pages', 't/'+guidish+'.prm', paramStr, 'Add id ' + guidish , function(err) {});
+			updateUrlParameters();
+		}
+		
+		// get a pId from github
+		function getPersistedTimers (pId, fn) {
+			var github = new Github({});
+			var repo = github.getRepo("notrom", "everyDamnTimer");
+			repo.read('gh-pages', 't/'+pId+".prm", function(err, contents) { 
+								console.log(contents); 
+								fn(contents);}, 
+							false);
+		}
+		
 		// update the link to these timers
 		function updateUrlParameters () {
 			var paramStr = buildUrlParameterString();
 			var dispUrlEle = document.getElementById("thisPageUrl");
-			dispUrlEle.innerHTML = "<a href='" + window.location.pathname + "?" + encodeURIComponent(paramStr) + "'>Link to these timers</a>" + "<br>";
+			if (timersId !== "") {
+				dispUrlEle.innerHTML = "<a href='" + window.location.pathname + "?pId=" + timersId + "'>Link to saved timers</a>";
+				dispUrlEle.innerHTML += '<input id="newPersistTimersBtn" type="button" onclick="newPersistTimers()" value="save new"></input>';
+				dispUrlEle.innerHTML += '<input id="updPersistTimersBtn" type="button" onclick="updPersistTimers()" value="save current"></input>';
+			} else if (paramStr !== "") {
+				dispUrlEle.innerHTML = "<a href='" + window.location.pathname + "?" + encodeURIComponent(paramStr) + "'>Link to ad hoc timers</a>";
+				dispUrlEle.innerHTML += '<input id="newPersistTimersBtn" type="button" onclick="newPersistTimers()" value="save new"></input>';
+			}
 			setConfirmUnload(true);
 		}
 		
@@ -194,7 +278,8 @@
 			var tmrUpdateInterval = "";
 			// default values ...
 			if (tmrNameEle.value === "") { tmrNameEle.value = "Absolute Timer";}
-			addTimerDef({name: tmrNameEle.value, updateInterval: 1000, refDatetime: datesStringtoDate(dtsStr), type: "T"});
+			addTimerDef({name: tmrNameEle.value, updateInterval: 1000, 
+							refDatetime: datesStringtoDate(dtsStr), type: "T"});
 			updateUrlParameters();
 		}
 		
