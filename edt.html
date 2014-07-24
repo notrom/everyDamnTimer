@@ -218,11 +218,11 @@
 			var dispUrlEle = document.getElementById("thisPageUrl");
 			if (timersId !== "") {
 				dispUrlEle.innerHTML = "<a href='" + window.location.pathname + "?pId=" + timersId + "'>Link to saved timers</a>";
-				dispUrlEle.innerHTML += '<input id="updPersistTimersBtn" type="button" onclick="updPersistTimers()" value="&#10004;" title="Update existing link"></input>';
-				dispUrlEle.innerHTML += '<input id="newPersistTimersBtn" type="button" onclick="newPersistTimers()" value="&#10010;" title="Save as new link"></input>';
+				dispUrlEle.innerHTML += '<input id="updPersistTimersBtn" type="button" onclick="updPersistTimers()" value="&#10004;" title="Update this set of timers, retain link address"></input>';
+				dispUrlEle.innerHTML += '<input id="newPersistTimersBtn" type="button" onclick="newPersistTimers()" value="&#10010;" title="Save as new set of timers, create a new address"></input>';
 			} else if (paramStr !== "") {
 				dispUrlEle.innerHTML = "<a href='" + window.location.pathname + "?" + encodeURIComponent(paramStr) + "'>Link to ad hoc timers</a>";
-				dispUrlEle.innerHTML += '<input id="newPersistTimersBtn" type="button" onclick="newPersistTimers()" value="&#10010;" title="Save as new link"></input>';
+				dispUrlEle.innerHTML += '<input id="newPersistTimersBtn" type="button" onclick="newPersistTimers()" value="&#10010;" title="Save this set of timers"></input>';
 			}
 			setConfirmUnload(true);
 		}
