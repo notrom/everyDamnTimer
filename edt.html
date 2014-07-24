@@ -57,7 +57,6 @@
 			<!--Update Interval (sec): <input id="addNewSWUpdateInterval" type="text" size="2"></input>-->
 		</div>
 	</div>
-<<<<<<< HEAD
 	
 	<script src="./lib/base64.js"></script>
 	<script src="./lib/underscore-min.js"></script>
@@ -78,9 +77,6 @@
 		var timersList = [];
 		// the timers id if provided in the url
 		var timersId = "";
-=======
-	<script>
->>>>>>> 68899c7dbefd42d4501f722f23b2d81db77eca05
 		
 		var msPerSecond = 1000;
 		var msPerMinute = msPerSecond * 60;
@@ -96,12 +92,6 @@
 			while ((m=re.exec(paramString)) != null) r.push(m[1]);
 			return r;
 		}
-<<<<<<< HEAD
-=======
-		
-		// all the timers in this page
-		var timersList = [];
->>>>>>> 68899c7dbefd42d4501f722f23b2d81db77eca05
 	
 		// function to parse the URL parameters
 		function urlParamParse(paramStr) {
@@ -123,7 +113,6 @@
 		// build the timers encoded in the URL
 		function builTimersFromUrlParams() {
 			var urlTimersList = [];
-<<<<<<< HEAD
 			// if a pId is provided try that
 			var urlTimersId = queryString(decodeURIComponent(document.location.search), "pId");
 			
@@ -147,12 +136,6 @@
 						addTimerDef(urlTimersList[i]);
 					}
 				}
-=======
-			var timersListStr = queryString(decodeURIComponent(document.location.search), "timers");
-			urlTimersList = urlParamParse(timersListStr[0]);
-			for (var i = 0; i < urlTimersList.length; i ++) {
-				addTimerDef(urlTimersList[i]);
->>>>>>> 68899c7dbefd42d4501f722f23b2d81db77eca05
 			}
 		}
 		
@@ -177,7 +160,6 @@
 			return paramString;
 		}
 		
-<<<<<<< HEAD
 		var guid = (function() {
 			function s4() {
 				return Math.floor((1 + Math.random()) * 0x10000)
@@ -231,13 +213,10 @@
 							false);
 		}
 		
-=======
->>>>>>> 68899c7dbefd42d4501f722f23b2d81db77eca05
 		// update the link to these timers
 		function updateUrlParameters () {
 			var paramStr = buildUrlParameterString();
 			var dispUrlEle = document.getElementById("thisPageUrl");
-<<<<<<< HEAD
 			if (timersId !== "") {
 				dispUrlEle.innerHTML = "<a href='" + window.location.pathname + "?pId=" + timersId + "'>Link to saved timers</a>";
 				dispUrlEle.innerHTML += '<input id="newPersistTimersBtn" type="button" onclick="newPersistTimers()" value="save new"></input>';
@@ -246,9 +225,6 @@
 				dispUrlEle.innerHTML = "<a href='" + window.location.pathname + "?" + encodeURIComponent(paramStr) + "'>Link to ad hoc timers</a>";
 				dispUrlEle.innerHTML += '<input id="newPersistTimersBtn" type="button" onclick="newPersistTimers()" value="save new"></input>';
 			}
-=======
-			dispUrlEle.innerHTML = "<a href='" + window.location.pathname + "?" + encodeURIComponent(paramStr) + "'>Link to these timers</a>" + "<br>";
->>>>>>> 68899c7dbefd42d4501f722f23b2d81db77eca05
 			setConfirmUnload(true);
 		}
 		
@@ -302,12 +278,8 @@
 			var tmrUpdateInterval = "";
 			// default values ...
 			if (tmrNameEle.value === "") { tmrNameEle.value = "Absolute Timer";}
-<<<<<<< HEAD
 			addTimerDef({name: tmrNameEle.value, updateInterval: 1000, 
 							refDatetime: datesStringtoDate(dtsStr), type: "T"});
-=======
-			addTimerDef({name: tmrNameEle.value, updateInterval: 1000, refDatetime: datesStringtoDate(dtsStr), type: "T"});
->>>>>>> 68899c7dbefd42d4501f722f23b2d81db77eca05
 			updateUrlParameters();
 		}
 		
