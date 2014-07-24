@@ -208,7 +208,6 @@
 			var github = new Github({});
 			var repo = github.getRepo("notrom", "everyDamnTimer");
 			repo.read('gh-pages', 't/'+pId+".prm", function(err, contents) { 
-								console.log(contents); 
 								fn(contents);}, 
 							false);
 		}
@@ -219,8 +218,8 @@
 			var dispUrlEle = document.getElementById("thisPageUrl");
 			if (timersId !== "") {
 				dispUrlEle.innerHTML = "<a href='" + window.location.pathname + "?pId=" + timersId + "'>Link to saved timers</a>";
+				dispUrlEle.innerHTML += '<input id="updPersistTimersBtn" type="button" onclick="updPersistTimers()" value="update current"></input>';
 				dispUrlEle.innerHTML += '<input id="newPersistTimersBtn" type="button" onclick="newPersistTimers()" value="save new"></input>';
-				dispUrlEle.innerHTML += '<input id="updPersistTimersBtn" type="button" onclick="updPersistTimers()" value="save current"></input>';
 			} else if (paramStr !== "") {
 				dispUrlEle.innerHTML = "<a href='" + window.location.pathname + "?" + encodeURIComponent(paramStr) + "'>Link to ad hoc timers</a>";
 				dispUrlEle.innerHTML += '<input id="newPersistTimersBtn" type="button" onclick="newPersistTimers()" value="save new"></input>';
