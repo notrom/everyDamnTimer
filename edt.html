@@ -10,6 +10,7 @@
 	<title>EDT</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<link rel="stylesheet" type="text/css" href="colours.css">
+	
 </head>
 <body>
 	<div class="edtHeader">
@@ -198,16 +199,16 @@
 			timersId = guidish;
 			// here you go ...
 			var github = new Github({});
-			var repo = github.getRepo("notrom", "everyDamnTimer");
-			repo.write('gh-pages', 't/'+guidish+'.prm', paramStr, 'Add id ' + guidish , function(err) {});
+			var repo = github.getRepo("everyDamnTimer", "everyDamnTimer");
+			repo.write('master', 't/'+guidish+'.prm', paramStr, 'Add id ' + guidish , function(err) {});
 			updateUrlParameters();
 		}
 		
 		// get a pId from github
 		function getPersistedTimers (pId, fn) {
 			var github = new Github({});
-			var repo = github.getRepo("notrom", "everyDamnTimer");
-			repo.read('gh-pages', 't/'+pId+".prm", function(err, contents) { 
+			var repo = github.getRepo("everyDamnTimer", "everyDamnTimer");
+			repo.read('master', 't/'+pId+".prm", function(err, contents) { 
 								fn(contents);}, 
 							false);
 		}
